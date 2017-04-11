@@ -1,16 +1,28 @@
 // Name:            Search
-// Description:     Component to create the search
+// Description:     Defines a search component
 //
 // Component:       `uk-search`
 //
-// Sub-objects:     `uk-search-input`
-//                  `uk-search-toggle`
+// Sub-objects:     `uk-search-field`
 //
-// Adopted:         `uk-search-icon`
+// Modifier:        (Nav) `uk-nav-search`
+//                  (Dropdown) `uk-dropdown-search`
 //
-// Modifier:        `uk-search-default`
-//                  `uk-search-navbar`
-//                  `uk-search-large`
+// States:          `uk-active`
+//                  `uk-loading`
+//
+// Uses:            Animation
+//                  Icon: FontAwesome
+//                  Navbar: `uk-navbar-flip`
+//
+// Used by:         Off-canvas
+//
+// Markup:
+//
+// <!-- uk-search -->
+// <form class="uk-search" data-uk-search>
+//     <input class="uk-search-field" type="search" placeholder="">
+// </form>
 //
 // ========================================================================
 
@@ -18,35 +30,46 @@
 // Variables
 // ========================================================================
 
-@search-color:                                      @global-color;
-@search-placeholder-color:                          @global-muted-color;
+@search-width:                                  120px;
+@search-focus-width:                            180px;
+@search-height:                                 30px;
+@search-padding:                                30px;
+@search-border:                                 rgba(0,0,0,0);
+@search-border-width:                           1px;
+@search-background:                             rgba(0,0,0,0);
+@search-color:                                  #444;
+@search-placeholder-color:                      #999;
 
-@search-icon-color:                                 @global-muted-color;
+@search-icon:                                   "\f002";
+@search-icon-size:                              14px;
+@search-icon-color:                             rgba(0,0,0,0.2);
 
-@search-default-width:                              180px;
-@search-default-height:                             @global-control-height;
-@search-default-padding-horizontal:                 6px;
-@search-default-background:                         @global-muted-background;
-@search-default-focus-background:                   @search-default-background;
+// Dropdown modifier
+@dropdown-search-width:                         300px;
+@dropdown-search-margin-top:                    0;
+@dropdown-search-background:                    #f5f5f5;
+@dropdown-search-color:                         #444;
+@dropdown-search-animation:                     uk-slide-top-fixed;
+@dropdown-search-navbar-margin-top:             5px;
+@dropdown-search-navbar-margin-right:           -15px;
 
-@search-default-icon-width:                         @global-control-height;
+// Nav modifier
+@nav-search-color:                              #444;
+@nav-search-active-background:                  #00a8e6;
+@nav-search-active-color:                       #fff;
+@nav-search-header-color:                       #999;
+@nav-search-divider-border:                     #ddd;
+@nav-search-divider-border-width:               1px;
+@nav-search-nested-color:                       #07D;
+@nav-search-nested-hover-color:                 #059;
 
-@search-navbar-width:                               400px;
-@search-navbar-height:                              40px;
-@search-navbar-background:                          transparent;
-@search-navbar-font-size:                           @global-large-font-size;
-
-@search-navbar-icon-width:                          40px;
-
-@search-large-width:                                500px;
-@search-large-height:                               80px;
-@search-large-background:                           transparent;
-@search-large-font-size:                            @global-xxlarge-font-size;
-
-@search-large-icon-width:                           80px;
-
-@search-toggle-color:                               @global-muted-color;
-@search-toggle-hover-color:                         @global-color;
+// Search in offcanvas
+@offcanvas-search-margin:                       20px 15px;
+@offcanvas-search-background:                   #1a1a1a;
+@offcanvas-search-border:                       rgba(0,0,0,0);
+@offcanvas-search-color:                        #ccc;
+@offcanvas-search-placeholder-color:            #777;
+@offcanvas-search-icon-color:                   #777;
 
 
 /* ========================================================================
@@ -54,53 +77,79 @@
  ========================================================================== */
 
 /*
- * 1. Container fits its content
- * 2. Create position context
- * 3. Prevent content overflow
- * 4. Reset `form`
+ * 1. Create position context for dropdowns
+ * 2. Needed for `form` element
  */
 
 .uk-search {
-    /* 1 */
     display: inline-block;
-    /* 2 */
+    /* 1 */
     position: relative;
-    /* 3 */
-    max-width: 100%;
-    /* 4 */
+    /* 2 */
     margin: 0;
+    .hook-search;
+}
+
+/*
+ * Icon
+ */
+
+.uk-search:before {
+    content: @search-icon;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: @search-padding;
+    line-height: @search-height;
+    text-align: center;
+    font-family: FontAwesome;
+    font-size: @search-icon-size;
+    color: @search-icon-color;
+    .hook-search-icon;
 }
 
 
-/* Input
+/* Sub-object `uk-search-field`
  ========================================================================== */
 
 /*
- * Remove the inner padding and cancel buttons in Chrome on OS X and Safari on OS X.
+ * Removes inner padding and border in Firefox 4+.
  */
 
-.uk-search-input::-webkit-search-cancel-button,
-.uk-search-input::-webkit-search-decoration { -webkit-appearance: none; }
+.uk-search-field::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/*
+ * Remove inner padding and search cancel button in Chrome, Safari and Opera on OS X.
+ */
+
+.uk-search-field::-webkit-search-cancel-button,
+.uk-search-field::-webkit-search-decoration { -webkit-appearance: none; }
+
+/*
+ * Removes cancel button in IE10
+ */
+
+.uk-search-field::-ms-clear { display: none; }
 
 /*
  * Removes placeholder transparency in Firefox.
  */
 
-.uk-search-input::-moz-placeholder { opacity: 1; }
+.uk-search-field::-moz-placeholder { opacity: 1; }
 
 /*
  * 1. Define consistent box sizing.
  * 2. Address margins set differently in Firefox/IE and Chrome/Safari/Opera.
  * 3. Remove `border-radius` in iOS.
- * 4. Change font properties to `inherit` in all browsers
- * 5. Show the overflow in Edge.
- * 6. Remove default style in iOS.
- * 7. Vertical alignment
- * 8. Take the full container width
- * 9. Style
+ * 4. Correct `font` properties and `color` not being inherited.
+ * 5. Remove default style in iOS.
+ * 6. Style
  */
 
-.uk-search-input {
+.uk-search-field {
     /* 1 */
     box-sizing: border-box;
     /* 2 */
@@ -109,224 +158,135 @@
     border-radius: 0;
     /* 4 */
     font: inherit;
-    /* 5 */
-    overflow: visible;
-    /* 6 */
-    -webkit-appearance: none;
-    /* 7 */
-    vertical-align: middle;
-    /* 8 */
-    width: 100%;
-    /* 9 */
-    border: none;
     color: @search-color;
+    /* 5 */
+    -webkit-appearance: none;
+    /* 6 */
+    width: @search-width;
+    height: @search-height;
+    padding: 0 0 0 @search-padding;
+    border: @search-border-width solid @search-border;
+    background: @search-background;
+    -webkit-transition: all 0.2s linear;
+    transition: all 0.2s linear;
+    vertical-align: middle;
+    .hook-search-field;
 }
-
-.uk-search-input:focus { outline: 0; }
 
 /* Placeholder */
-.uk-search-input:-ms-input-placeholder { color: @search-placeholder-color !important; }
-.uk-search-input::-moz-placeholder { color: @search-placeholder-color; }
-.uk-search-input::-webkit-input-placeholder { color: @search-placeholder-color; }
-
-
-/* Icon
- ========================================================================== */
-
-/*
- * Adopts `uk-icon`
- * Required for `button`
- * 1. Remove margins in Chrome, Safari and Opera.
- * 2. Remove borders for `button`.
- * 3. Address `overflow` set to `hidden` in IE.
- * 4. Correct `font` properties and `color` not being inherited for `button`.
- * 5. Remove the inheritance of text transform in Edge, Firefox, and IE.
- * 6. Remove default `button` padding and background color
- * 7. Required for `button`.
- */
-
-.uk-search-icon {
-    /* 1 */
-    margin: 0;
-    /* 2 */
-    border: none;
-    /* 3 */
-    overflow: visible;
-    /* 4 */
-    font: inherit;
-    color: inherit;
-    /* 5 */
-    text-transform: none;
-    /* 6. */
-    padding: 0;
-    background-color: transparent;
-    /* 7 */
-    cursor: pointer;
-}
-
-/*
- * Remove the inner border and padding in Firefox. Required for `button`.
- */
-
-.uk-search-icon::-moz-focus-inner {
-    border: 0;
-    padding: 0;
-}
-
-/*
- * Remove default focus style
- */
-
-.uk-search-icon:focus { outline: none; }
-
-/*
- * Position above input
- * 1. Set position
- * 2. Center icon vertically and horizontally
- * 3. Style
- */
-
-.uk-search .uk-search-icon {
-    /* 1 */
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    /* 2 */
-    display: -ms-inline-flexbox;
-    display: -webkit-inline-flex;
-    display: inline-flex;
-    -ms-flex-pack: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    -ms-flex-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-    /* 3 */
-    color: @search-icon-color;
-}
-
-/*
- * Required for `a`.
- */
-
-.uk-search .uk-search-icon:hover { color: @search-icon-color; }
-
-/*
- * Make `input` element clickable through icon, e.g. if it's a `span`
- */
-
-.uk-search .uk-search-icon:not(a):not(button):not(input) { pointer-events: none; }
-
-/*
- * Position modifier
- */
-
-.uk-search .uk-search-icon-flip {
-    right: 0;
-    left: auto;
-}
-
-
-/* Default modifier
- ========================================================================== */
-
-.uk-search-default { width: @search-default-width; }
-
-/*
- * Input
- */
-
-.uk-search-default .uk-search-input {
-    height: @search-default-height;
-    padding-left: @search-default-padding-horizontal;
-    padding-right: @search-default-padding-horizontal;
-    background: @search-default-background;
-    .hook-search-default-input;
-}
+.uk-search-field:-ms-input-placeholder { color: @search-placeholder-color !important; }
+.uk-search-field::-moz-placeholder { color: @search-placeholder-color; }
+.uk-search-field::-webkit-input-placeholder { color: @search-placeholder-color; }
 
 /* Focus */
-.uk-search-default .uk-search-input:focus {
-    background-color: @search-default-focus-background;
-    .hook-search-default-input-focus;
+.uk-search-field:focus {
+    outline: 0;
+    .hook-search-field-focus;
 }
 
-/*
- * Icon
- */
-
-.uk-search-default .uk-search-icon { width: @search-default-icon-width; }
-
-.uk-search-default .uk-search-icon:not(.uk-search-icon-flip) + .uk-search-input { padding-left: (@search-default-icon-width); }
-.uk-search-default .uk-search-icon-flip + .uk-search-input { padding-right: (@search-default-icon-width); }
+/* Focus + Active */
+.uk-search-field:focus,
+.uk-search.uk-active .uk-search-field { width: @search-focus-width; }
 
 
-/* Navbar modifier
+/* Dropdown modifier: `uk-dropdown-search`
  ========================================================================== */
 
-.uk-search-navbar { width: @search-navbar-width; }
+.uk-dropdown-search {
+    width: @dropdown-search-width;
+    margin-top: @dropdown-search-margin-top;
+    background: @dropdown-search-background;
+    color: @dropdown-search-color;
+    .hook-dropdown-search;
+}
 
-/*
- * Input
- */
-
-.uk-search-navbar .uk-search-input {
-    height: @search-navbar-height;
-    background: @search-navbar-background;
-    font-size: @search-navbar-font-size;
-    .hook-search-navbar-input;
+.uk-open > .uk-dropdown-search {
+    -webkit-animation: @dropdown-search-animation 0.2s ease-in-out;
+    animation: @dropdown-search-animation 0.2s ease-in-out;
 }
 
 /*
- * Icon
+ * Dependency `uk-navbar-flip`
  */
 
-.uk-search-navbar .uk-search-icon { width: @search-navbar-icon-width; }
+.uk-navbar-flip .uk-dropdown-search {
+    margin-top: @dropdown-search-navbar-margin-top;
+    margin-right: @dropdown-search-navbar-margin-right;
+}
 
-.uk-search-navbar .uk-search-icon:not(.uk-search-icon-flip) + .uk-search-input { padding-left: (@search-navbar-icon-width); }
-.uk-search-navbar .uk-search-icon-flip + .uk-search-input { padding-right: (@search-navbar-icon-width); }
 
-
-/* Large modifier
+/* Nav modifier `uk-nav-search`
  ========================================================================== */
 
-.uk-search-large { width: @search-large-width; }
-
 /*
- * Input
+ * Items
  */
 
-.uk-search-large .uk-search-input {
-    height: @search-large-height;
-    background: @search-large-background;
-    font-size: @search-large-font-size;
-    .hook-search-large-input;
+.uk-nav-search > li > a {
+    color: @nav-search-color;
+    .hook-nav-search;
 }
 
 /*
- * Icon
+ * Active
+ * 1. Remove default focus style
  */
 
-.uk-search-large .uk-search-icon { width: @search-large-icon-width; }
+.uk-nav-search > li.uk-active > a {
+    background: @nav-search-active-background;
+    color: @nav-search-active-color;
+    /* 1 */
+    outline: none;
+    .hook-nav-search-active;
+}
 
-.uk-search-large .uk-search-icon:not(.uk-search-icon-flip) + .uk-search-input { padding-left: (@search-large-icon-width); }
-.uk-search-large .uk-search-icon-flip + .uk-search-input { padding-right: (@search-large-icon-width); }
+/*
+ * Sub-object: `uk-nav-header`
+ */
+
+.uk-nav-search .uk-nav-header {
+    color: @nav-search-header-color;
+    .hook-nav-search-header;
+}
+
+/*
+ * Sub-object: `uk-nav-divider`
+ */
+
+.uk-nav-search .uk-nav-divider {
+    border-top: @nav-search-divider-border-width solid @nav-search-divider-border;
+    .hook-nav-search-divider;
+}
+
+/*
+ * Nested items
+ */
+
+.uk-nav-search ul a { color: @nav-search-nested-color; }
+.uk-nav-search ul a:hover { color: @nav-search-nested-hover-color; }
 
 
-/* Toggle
+/* Search in offcanvas
  ========================================================================== */
 
-.uk-search-toggle {
-    color: @search-toggle-color;
-    .hook-search-toggle;
+.uk-offcanvas .uk-search {
+    display: block;
+    margin: @offcanvas-search-margin;
 }
 
-/* Hover + Focus */
-.uk-search-toggle:hover,
-.uk-search-toggle:focus {
-    color: @search-toggle-hover-color;
-    .hook-search-toggle-hover;
+.uk-offcanvas .uk-search:before { color: @offcanvas-search-icon-color; }
+
+.uk-offcanvas .uk-search-field {
+    width: 100%;
+    border-color: @offcanvas-search-border;
+    background: @offcanvas-search-background;
+    color: @offcanvas-search-color;
+    .hook-offcanvas-search-field;
 }
+
+.uk-offcanvas .uk-search-field:-ms-input-placeholder { color: @offcanvas-search-placeholder-color !important; }
+.uk-offcanvas .uk-search-field::-moz-placeholder { color: @offcanvas-search-placeholder-color; }
+.uk-offcanvas .uk-search-field::-webkit-input-placeholder { color: @offcanvas-search-placeholder-color; }
 
 
 // Hooks
@@ -334,99 +294,16 @@
 
 .hook-search-misc;
 
-.hook-search-default-input() {}
-.hook-search-default-input-focus() {}
-.hook-search-navbar-input() {}
-.hook-search-large-input() {}
+.hook-search() {}
+.hook-search-icon() {}
+.hook-search-field() {}
+.hook-search-field-focus() {}
 
-.hook-search-toggle() {}
-.hook-search-toggle-hover() {}
+.hook-dropdown-search() {}
+.hook-nav-search() {}
+.hook-nav-search-active() {}
+.hook-nav-search-header() {}
+.hook-nav-search-divider() {}
+.hook-offcanvas-search-field() {}
 
 .hook-search-misc() {}
-
-
-// Inverse
-// ========================================================================
-
-@inverse-search-color:                         @inverse-global-color;
-@inverse-search-placeholder-color:             @inverse-global-muted-color;
-
-@inverse-search-icon-color:                    @inverse-global-muted-color;
-
-@inverse-search-default-background:            @inverse-global-muted-background;
-@inverse-search-default-focus-background:      @inverse-search-default-background;
-
-@inverse-search-navbar-background:             transparent;
-
-@inverse-search-large-background:              transparent;
-
-@inverse-search-toggle-color:                  @inverse-global-muted-color;
-@inverse-search-toggle-hover-color:            @inverse-global-color;
-
-.hook-inverse() {
-
-    //
-    // Input
-    //
-
-    .uk-search-input { color: @inverse-search-color; }
-
-    .uk-search-input:-ms-input-placeholder { color: @inverse-search-placeholder-color !important; }
-    .uk-search-input::-moz-placeholder { color: @inverse-search-placeholder-color; }
-    .uk-search-input::-webkit-input-placeholder { color: @inverse-search-placeholder-color; }
-
-
-    //
-    // Icon
-    //
-
-    .uk-search .uk-search-icon { color: @inverse-search-icon-color; }
-
-    .uk-search .uk-search-icon:hover { color: @inverse-search-icon-color; }
-
-    //
-    // Style modifier
-    //
-
-    .uk-search-default .uk-search-input {
-        background-color: @inverse-search-default-background;
-        .hook-inverse-search-default-input;
-    }
-    .uk-search-default .uk-search-input:focus {
-        background-color: @inverse-search-default-background;
-        .hook-inverse-search-default-input-focus;
-    }
-
-    .uk-search-navbar .uk-search-input {
-        background-color: @inverse-search-navbar-background;
-        .hook-inverse-search-navbar-input;
-    }
-
-    .uk-search-large .uk-search-input {
-        background-color: @inverse-search-large-background;
-        .hook-inverse-search-large-input;
-    }
-
-    //
-    // Toggle
-    //
-
-    .uk-search-toggle {
-        color: @inverse-search-toggle-color;
-        .hook-inverse-search-toggle;
-    }
-
-    .uk-search-toggle:hover,
-    .uk-search-toggle:focus {
-        color: @inverse-search-toggle-hover-color;
-        .hook-inverse-search-toggle-hover;
-    }
-
-}
-
-.hook-inverse-search-default-input() {}
-.hook-inverse-search-default-input-focus() {}
-.hook-inverse-search-navbar-input() {}
-.hook-inverse-search-large-input() {}
-.hook-inverse-search-toggle() {}
-.hook-inverse-search-toggle-hover() {}
